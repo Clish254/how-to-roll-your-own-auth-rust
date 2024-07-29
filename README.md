@@ -1,16 +1,4 @@
-# Google OAuth in Axum
+# How to roll your own auth
 
-This template is an example of how you can implement Google OAuth using the Axum web framework in Rust.
-
-## Prerequisites
-
-Make sure you set up your Google OAuth, which you can find a link to set up [here.](https://console.cloud.google.com/apis/dashboard)
-
-Set your secrets in the Secrets.toml file:
-
-```toml
-GOOGLE_OAUTH_CLIENT_ID = "your-client-id"
-GOOGLE_OAUTH_CLIENT_SECRET = "your-client-secret"
-```
-
-Use `cargo shuttle run` and visit `http://localhost:8000` once the app is running, then try it out!
+This repo is my implementation of the rust version of Ben Award's [how to roll your own auth](https://www.youtube.com/watch?v=CcrgG5MjGOk&t=504s)
+If you are looking for Ben Award's TypeScript verision check [here](https://github.com/benawad/how-to-roll-your-own-auth/blob/main/README.md?plain=1)
