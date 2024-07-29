@@ -16,7 +16,7 @@ use oauth2::{
 use time::Duration as TimeDuration;
 
 use crate::errors::ApiError;
-use crate::AppState;
+use crate::startup::AppState;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
@@ -115,7 +115,6 @@ pub async fn discord_callback(
             refresh_token = r_token;
         }
         None => {
-            //PgQueryResult
             let user = sqlx::query_as::<_, User>(
                 "
                 INSERT INTO users (email, discord_id)

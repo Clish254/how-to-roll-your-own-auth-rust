@@ -3,6 +3,9 @@ name = "rust-axum-auth"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+path = "src/lib.rs"
+
 [dependencies]
 anyhow = "1.0.72"
 axum = { version = "0.7.2", features = ["multipart", "macros"] }

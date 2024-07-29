@@ -1,19 +1,6 @@
 use axum::response::Html;
 
 #[axum::debug_handler]
-pub async fn landing() -> Html<String> {
-    let url = "/api/auth/discord/authorize";
-    Html(format!(
-        r#"
-        <p>Welcome!</p>
-        <a href={url}>
-            Click here to sign in with discord!
-        </a>
-    "#
-    ))
-}
-
-#[axum::debug_handler]
 pub async fn home() -> Html<&'static str> {
     Html(
         r#"
@@ -60,4 +47,17 @@ pub async fn home() -> Html<&'static str> {
 </html>
     "#,
     )
+}
+
+#[axum::debug_handler]
+pub async fn landing() -> Html<String> {
+    let url = "/api/auth/discord/authorize";
+    Html(format!(
+        r#"
+        <p>Welcome!</p>
+        <a href={url}>
+            Click here to sign in with discord!
+        </a>
+    "#
+    ))
 }
