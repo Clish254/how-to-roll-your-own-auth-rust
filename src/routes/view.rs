@@ -36,6 +36,21 @@ pub async fn home() -> Html<&'static str> {
         document.addEventListener('DOMContentLoaded', (event) => {
             fetchProtectedContent();
         });
+        async function logOut() {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'GET',
+                    credentials: 'include' // Include cookies with the request
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url; // Redirect manually
+                }
+            } catch (error) {
+                // Handle network errors
+                console.error('Error during logout:', error);
+            }
+        }
     </script>
 </head>
 <body>
@@ -43,6 +58,7 @@ pub async fn home() -> Html<&'static str> {
     <p id="user-id"></p>
     <p id="discord-id"></p>
     <p id="email"></p>
+    <button onclick="logOut()">Log Out</button>
 </body>
 </html>
     "#,

@@ -100,7 +100,7 @@ pub async fn discord_callback(
 
     let user = sqlx::query_as::<_, User>(
         "
-         SELECT id, email, discord_id, created_at, last_updated
+         SELECT id, email, discord_id, refresh_token_version, created_at, last_updated
          FROM users
          WHERE discord_id = $1",
     )
@@ -110,7 +110,7 @@ pub async fn discord_callback(
     match user {
         Some(user) => {
             let (a_token, r_token) =
-                generate_access_and_refresh_token(user.id.to_string().clone(), state.clone())?;
+                generate_access_and_refresh_token(user.id, state.clone()).await?;
             access_token = a_token;
             refresh_token = r_token;
         }
@@ -119,7 +119,7 @@ pub async fn discord_callback(
                 "
                 INSERT INTO users (email, discord_id)
                 VALUES ($1, $2)
-                RETURNING id, email, discord_id, created_at, last_updated
+                RETURNING id, email, discord_id, refresh_token_version, created_at, last_updated
             ",
             )
             .bind(profile.email.clone())
@@ -127,7 +127,7 @@ pub async fn discord_callback(
             .fetch_one(&state.db)
             .await?;
             let (a_token, r_token) =
-                generate_access_and_refresh_token(user.id.to_string().clone(), state.clone())?;
+                generate_access_and_refresh_token(user.id, state.clone()).await?;
             access_token = a_token;
             refresh_token = r_token;
         }
@@ -169,6 +169,7 @@ pub struct User {
     pub id: i32,
     pub email: String,
     pub discord_id: String,
+    pub refresh_token_version: i64,
     pub created_at: Option<DateTime<Utc>>,
     pub last_updated: Option<DateTime<Utc>>,
 }
@@ -189,18 +190,14 @@ impl FromRequest<AppState> for AuthenticatedUser {
             return Err(ApiError::Unauthorized);
         };
 
-        let token_data = decode::<Claims>(
+        let token_data = decode::<AccessTokenClaims>(
             &access_token_cookie,
             &Keys::new(&state.jwt_secrets.access_token.into_bytes()).decoding,
             &Validation::default(),
         )
         .map_err(|_| ApiError::Unauthorized)?;
 
-        let user_id = token_data
-            .claims
-            .sub
-            .parse::<i32>()
-            .map_err(|_| ApiError::UserIdParseError)?;
+        let user_id = token_data.claims.sub;
         Ok(Self { id: user_id })
     }
 }
@@ -224,12 +221,12 @@ pub async fn protected(
 
 #[derive(Clone)]
 pub struct Keys {
-    encoding: EncodingKey,
-    decoding: DecodingKey,
+    pub encoding: EncodingKey,
+    pub decoding: DecodingKey,
 }
 
 impl Keys {
-    fn new(secret: &[u8]) -> Self {
+    pub fn new(secret: &[u8]) -> Self {
         Self {
             encoding: EncodingKey::from_secret(secret),
             decoding: DecodingKey::from_secret(secret),
@@ -237,17 +234,34 @@ impl Keys {
     }
 }
 
-// the JWT claim
 #[derive(Debug, Serialize, Deserialize)]
-struct Claims {
-    sub: String,
-    exp: usize,
+pub struct AccessTokenClaims {
+    pub sub: i32,
+    pub exp: usize,
 }
 
-pub fn generate_access_and_refresh_token(
-    user_id: String,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RefreshTokenClaims {
+    pub sub: i32,
+    pub refresh_token_version: i64, // New field added, matches SQL BIGINT
+    pub exp: usize,
+}
+
+pub async fn generate_access_and_refresh_token(
+    user_id: i32,
     app_state: AppState,
 ) -> Result<(String, String), ApiError> {
+    let user = sqlx::query_as::<_, User>(
+        "
+        UPDATE users
+        SET refresh_token_version = refresh_token_version + 1
+        WHERE id = ($1)
+        RETURNING id, email, discord_id, refresh_token_version, created_at, last_updated
+        ",
+    )
+    .bind(user_id)
+    .fetch_one(&app_state.db)
+    .await?;
     // add 15 minutes to current unix epoch time as expiry date/time
     let access_token_exp = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
@@ -255,8 +269,8 @@ pub fn generate_access_and_refresh_token(
         .as_secs()
         + 900;
 
-    let access_token_claims = Claims {
-        sub: user_id.clone(),
+    let access_token_claims = AccessTokenClaims {
+        sub: user_id,
         // Mandatory expiry time as UTC timestamp - takes unix epoch
         exp: usize::try_from(access_token_exp).unwrap(),
     };
@@ -275,8 +289,9 @@ pub fn generate_access_and_refresh_token(
         .as_secs()
         + 2_592_000;
 
-    let refresh_token_claims = Claims {
+    let refresh_token_claims = RefreshTokenClaims {
         sub: user_id,
+        refresh_token_version: user.refresh_token_version,
         // Mandatory expiry time as UTC timestamp - takes unix epoch
         exp: usize::try_from(refresh_token_exp).unwrap(),
     };

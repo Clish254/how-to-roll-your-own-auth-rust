@@ -6,7 +6,12 @@ use shuttle_axum::ShuttleAxum;
 use sqlx::PgPool;
 
 use crate::routes::{
-    auth::oauth,
+    auth::{
+        logout::logout,
+        oauth::{discord_authorize, discord_callback},
+        refresh_token::refresh_tokens,
+    },
+    protected::protected,
     view::{home, landing},
 };
 
@@ -34,18 +39,20 @@ pub struct AppState {
 }
 
 fn init_router(state: AppState, oauth_client: BasicClient) -> Router {
-    let discord_auth_router = Router::new()
-        .route("/authorize", get(oauth::discord_authorize))
-        .route("/callback", get(oauth::discord_callback));
+    let auth_router = Router::new()
+        .route("/discord/authorize", get(discord_authorize))
+        .route("/discord/callback", get(discord_callback))
+        .route("/refresh", get(refresh_tokens))
+        .route("/logout", get(logout));
 
-    let protected_router = Router::new().route("/", get(oauth::protected));
+    let protected_router = Router::new().route("/", get(protected));
 
     let view_router = Router::new()
         .route("/", get(landing))
         .route("/home", get(home));
 
     Router::new()
-        .nest("/api/auth/discord", discord_auth_router)
+        .nest("/api/auth", auth_router)
         .nest("/protected", protected_router)
         .nest("/", view_router)
         .layer(Extension(oauth_client))

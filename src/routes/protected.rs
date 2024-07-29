@@ -10,13 +10,17 @@ pub async fn protected(
 ) -> Result<impl IntoResponse, ApiError> {
     let user = sqlx::query_as::<_, User>(
         r#"
-                SELECT id, email, discord_id, created_at, last_updated
+                SELECT id, email, discord_id, refresh_token_version, created_at, last_updated
                 FROM users
                 WHERE id = $1
             "#,
     )
     .bind(authenticated_user.id)
     .fetch_one(&state.db)
-    .await?;
+    .await
+    .map_err(|e| {
+        println!("{:?}", e);
+        ApiError::Unauthorized
+    })?;
     Ok((StatusCode::OK, Json(user)))
 }
