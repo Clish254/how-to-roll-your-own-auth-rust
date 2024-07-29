@@ -161,7 +161,7 @@ struct DiscordUserProfile {
 
 #[derive(Deserialize, Clone)]
 pub struct AuthenticatedUser {
-    id: i32,
+    pub id: i32,
 }
 
 #[derive(Serialize, Deserialize, sqlx::FromRow, Debug)]

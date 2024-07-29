@@ -27,6 +27,8 @@ impl FromRef<AppState> for Key {
 pub struct AppState {
     pub db: PgPool,
     pub ctx: Client,
+    // All cookies will be private and encrypted with a Key.
+    // This makes it suitable for storing private data.
     pub key: Key,
     pub jwt_secrets: JwtSecrets,
 }
