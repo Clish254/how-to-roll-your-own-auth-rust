@@ -12,6 +12,11 @@ async fn main(
         .await
         .expect("Failed to run migrations");
 
+    if option_env!("SHUTTLE") == Some("true") {
+        println!("Running on Shuttle");
+    } else {
+        println!("Not running on Shuttle or SHUTTLE env var not set");
+    }
     let jwt_secrets = JwtSecrets {
         access_token: secrets.get("ACCESS_TOKEN_SECRET").unwrap(),
         refresh_token: secrets.get("REFRESH_TOKEN_SECRET").unwrap(),
