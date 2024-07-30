@@ -1,4 +1,4 @@
-use rust_axum_auth::startup::{run, JwtSecrets, OauthCredentials};
+use rust_axum_auth::startup::{run, AppSecrets, OauthCredentials};
 use shuttle_runtime::SecretStore;
 use sqlx::PgPool;
 
@@ -18,13 +18,17 @@ async fn main(
     } else {
         println!("Not running on Shuttle or SHUTTLE env var not set");
     }
-    let jwt_secrets = JwtSecrets {
+
+    let cookie_key = secrets.get("COOKIE_KEY").unwrap();
+    let key_bytes: Vec<u8> = cookie_key.into_bytes();
+    let app_secrets = AppSecrets {
         access_token: secrets.get("ACCESS_TOKEN_SECRET").unwrap(),
         refresh_token: secrets.get("REFRESH_TOKEN_SECRET").unwrap(),
+        cookie_key: key_bytes,
     };
     let oauth_credentials = OauthCredentials {
         oauth_id: secrets.get("DISCORD_OAUTH_CLIENT_ID").unwrap(),
         oauth_secret: secrets.get("DISCORD_OAUTH_CLIENT_SECRET").unwrap(),
     };
-    run(jwt_secrets, oauth_credentials, db, is_prod)
+    run(app_secrets, oauth_credentials, db, is_prod)
 }

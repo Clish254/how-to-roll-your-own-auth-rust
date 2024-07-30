@@ -16,6 +16,13 @@ use crate::routes::{
 };
 
 #[derive(Clone)]
+pub struct AppSecrets {
+    pub access_token: String,
+    pub refresh_token: String,
+    pub cookie_key: Vec<u8>,
+}
+
+#[derive(Clone)]
 pub struct JwtSecrets {
     pub access_token: String,
     pub refresh_token: String,
@@ -84,7 +91,7 @@ pub struct OauthCredentials {
 }
 
 pub fn run(
-    jwt_secrets: JwtSecrets,
+    app_secrets: AppSecrets,
     oauth_credentials: OauthCredentials,
     db: PgPool,
     is_prod: bool,
@@ -96,10 +103,14 @@ pub fn run(
     } else {
         Url::parse("http://localhost:8000").expect("Error parsing local url")
     };
+    let jwt_secrets = JwtSecrets {
+        access_token: app_secrets.access_token,
+        refresh_token: app_secrets.refresh_token,
+    };
     let state = AppState {
         db,
         ctx,
-        key: Key::generate(),
+        key: Key::from(&app_secrets.cookie_key),
         jwt_secrets,
         is_prod,
         base_url: base_url.clone(),

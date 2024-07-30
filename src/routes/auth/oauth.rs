@@ -26,7 +26,6 @@ pub struct DiscordCallbackRequest {
 }
 
 pub async fn discord_authorize(
-    State(state): State<AppState>,
     jar: PrivateCookieJar,
     Extension(oauth_client): Extension<BasicClient>,
 ) -> Result<impl IntoResponse, ApiError> {
