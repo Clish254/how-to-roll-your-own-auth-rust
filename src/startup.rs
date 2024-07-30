@@ -62,7 +62,7 @@ fn init_router(state: AppState, oauth_client: BasicClient) -> Router {
 }
 
 fn build_oauth_client(client_id: String, client_secret: String, base_url: Url) -> BasicClient {
-    let redirect_url = format!("{}/api/auth/discord/callback", base_url);
+    let redirect_url = format!("{}api/auth/discord/callback", base_url);
 
     let auth_url = AuthUrl::new("https://discord.com/oauth2/authorize".to_string())
         .expect("Invalid discord authorization endpoint URL");

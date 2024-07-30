@@ -43,12 +43,13 @@ pub async fn discord_authorize(
 
     let csrf_cookie = Cookie::build(("csrf_token", csrf_token.secret().to_string()))
         .same_site(SameSite::None)
-        .secure(state.is_prod)
+        .secure(true)
         .http_only(true)
         .max_age(TimeDuration::seconds(120));
+
     let pkce_cookie = Cookie::build(("pkce_verifier", pkce_verifier.secret().to_string()))
         .same_site(SameSite::None)
-        .secure(state.is_prod)
+        .secure(true)
         .http_only(true)
         .max_age(TimeDuration::seconds(120));
 
