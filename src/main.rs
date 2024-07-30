@@ -12,7 +12,8 @@ async fn main(
         .await
         .expect("Failed to run migrations");
 
-    if option_env!("SHUTTLE") == Some("true") {
+    let is_prod = option_env!("SHUTTLE").is_some();
+    if is_prod {
         println!("Running on Shuttle");
     } else {
         println!("Not running on Shuttle or SHUTTLE env var not set");
@@ -25,5 +26,5 @@ async fn main(
         oauth_id: secrets.get("DISCORD_OAUTH_CLIENT_ID").unwrap(),
         oauth_secret: secrets.get("DISCORD_OAUTH_CLIENT_SECRET").unwrap(),
     };
-    run(jwt_secrets, oauth_credentials, db)
+    run(jwt_secrets, oauth_credentials, db, is_prod)
 }

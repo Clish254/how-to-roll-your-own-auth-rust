@@ -23,14 +23,14 @@ pub async fn refresh_tokens(
     let access_token_cookie = Cookie::build(("access_token", access_token.clone()))
         .same_site(SameSite::Strict)
         .path("/")
-        //.secure(true)
+        .secure(state.is_prod)
         .http_only(true)
         .max_age(TimeDuration::seconds(900));
 
     let refresh_token_cookie = Cookie::build(("refresh_token", refresh_token.clone()))
         .same_site(SameSite::Strict)
         .path("/")
-        //.secure(true)
+        .secure(state.is_prod)
         .http_only(true)
         .max_age(TimeDuration::seconds(2_592_000));
 

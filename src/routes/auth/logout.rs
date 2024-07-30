@@ -33,14 +33,14 @@ pub async fn logout(
     let expired_access_token_cookie = Cookie::build(("access_token", ""))
         .same_site(SameSite::Strict)
         .path("/")
-        //.secure(true)
+        .secure(state.is_prod)
         .http_only(true)
         .expires(OffsetDateTime::now_utc() - Duration::days(1));
 
     let expired_refresh_token_cookie = Cookie::build(("refresh_token", ""))
         .same_site(SameSite::Strict)
         .path("/")
-        //.secure(true)
+        .secure(state.is_prod)
         .http_only(true)
         .expires(OffsetDateTime::now_utc() - Duration::days(1));
 

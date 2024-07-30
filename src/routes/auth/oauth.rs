@@ -26,6 +26,7 @@ pub struct DiscordCallbackRequest {
 }
 
 pub async fn discord_authorize(
+    State(state): State<AppState>,
     jar: PrivateCookieJar,
     Extension(oauth_client): Extension<BasicClient>,
 ) -> Result<impl IntoResponse, ApiError> {
@@ -42,12 +43,12 @@ pub async fn discord_authorize(
 
     let csrf_cookie = Cookie::build(("csrf_token", csrf_token.secret().to_string()))
         .same_site(SameSite::None)
-        //.secure(true)
+        .secure(state.is_prod)
         .http_only(true)
         .max_age(TimeDuration::seconds(120));
     let pkce_cookie = Cookie::build(("pkce_verifier", pkce_verifier.secret().to_string()))
         .same_site(SameSite::None)
-        //.secure(true)
+        .secure(state.is_prod)
         .http_only(true)
         .max_age(TimeDuration::seconds(120));
 
@@ -136,14 +137,14 @@ pub async fn discord_callback(
     let access_token_cookie = Cookie::build(("access_token", access_token))
         .same_site(SameSite::Strict)
         .path("/")
-        //.secure(true)
+        .secure(state.is_prod)
         .http_only(true)
         .max_age(TimeDuration::seconds(900));
 
     let refresh_token_cookie = Cookie::build(("refresh_token", refresh_token))
         .same_site(SameSite::Strict)
         .path("/")
-        //.secure(true)
+        .secure(state.is_prod)
         .http_only(true)
         .max_age(TimeDuration::seconds(2_592_000));
 
