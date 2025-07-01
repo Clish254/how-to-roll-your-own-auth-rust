@@ -4,6 +4,26 @@ This repo is my implementation of the rust version of Ben Awad's [how to roll yo
 
 You can check out Ben Awad's TypeScript verision [here](https://github.com/benawad/how-to-roll-your-own-auth/blob/main/README.md?plain=1).
 
+## What this actually is
+
+This repo demonstrates how to "roll your own auth" in Rust using Axum — without relying on third-party auth-as-a-service platforms like Clerk or Auth0.
+
+🔐 Auth flow:
+- Uses OAuth (e.g., Google) as identity provider
+- Stores sessions server-side
+- Manages JWTs + secure cookies
+- Brute-force protection by design through external identity verification
+
+🚫 What it doesn't use:
+- SaaS identity services
+- Hosted login widgets
+- Black-box auth logic
+
+✅ What you control:
+- Your user DB
+- Session management
+- Auth flow logic
+
 ## Project Structure
 
 The project is organized into the following modules:
